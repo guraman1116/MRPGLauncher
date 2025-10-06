@@ -16,7 +16,8 @@
          <ProgressBar fx:id="MCProgress" prefWidth="600.0" progress="0.0" styleClass="progress-bar, progress-bar-striped, progress-bar-animated" visible="false" />
          <ButtonBar buttonMinWidth="100.0" prefHeight="40.0" prefWidth="100.0">
             <buttons>
-                <Button fx:id="agreementButton" mnemonicParsing="false" onAction="#onAgreementButtonClick" prefWidth="200.0" styleClass="btn, btn-default" text="利用規約" />
+                <Button fx:id="logoutButton" mnemonicParsing="false" onAction="#onLogoutButtonClick" prefWidth="150.0" styleClass="btn, btn-danger" text="ログアウト" visible="false" />
+                <Button fx:id="agreementButton" mnemonicParsing="false" onAction="#onAgreementButtonClick" prefWidth="100.0" styleClass="btn, btn-default" text="利用規約" />
                 <Button fx:id="startButton" onAction="#onStartButtonClick" prefWidth="150.0" styleClass="btn, btn-primary" text="開始" />
             </buttons>
             <VBox.margin>

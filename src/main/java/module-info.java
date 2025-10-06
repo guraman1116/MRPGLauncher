@@ -7,7 +7,11 @@ module net.mrpg.mrpglauncher {
     requires net.synedra.validatorfx;
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
-    requires net.hycrafthd.minecraft_authenticator;
+    requires com.google.gson;
+    requires MinecraftAuth;
+    requires httpclient;
+    requires java.datatransfer;
+    requires java.desktop;
 
     opens net.mrpg.mrpglauncher to javafx.fxml;
     exports net.mrpg.mrpglauncher;

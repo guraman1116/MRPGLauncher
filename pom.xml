@@ -13,18 +13,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.12.1</junit.version>
     </properties>
-    <repositories>
-        <repository>
-            <id>u-team-repo</id>
-            <url>https://repo.u-team.info/</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
-            <groupId>net.hycrafthd</groupId>
-            <artifactId>minecraft_authenticator</artifactId>
-            <version>3.0.5</version>
+            <groupId>net.raphimc</groupId>
+            <artifactId>MinecraftAuth</artifactId>
+            <version>4.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>

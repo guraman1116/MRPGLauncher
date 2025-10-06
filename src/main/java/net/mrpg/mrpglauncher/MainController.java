@@ -1,17 +1,16 @@
 package net.mrpg.mrpglauncher;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import net.hycrafthd.minecraft_authenticator.login.Authenticator;
+import net.mrpg.mrpglauncher.Minecraft.Auth;
 
 import java.io.*;
 import java.net.URL;
@@ -37,11 +36,17 @@ public class MainController implements Initializable {
     private Button agreementButton;
     @FXML
     private Button startButton;
+    @FXML
+    private Button logoutButton;
+
+    private Auth auth;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loadSettings();
         updateButtonStates();
+        auth = new Auth();
+        updateUiForLoginState();
     }
 
     private void loadSettings() {
@@ -117,13 +122,62 @@ public class MainController implements Initializable {
             e.printStackTrace();
         }
     }
-    final Authenticator authenticator = Authenticator.ofMicrosoft(a);
+
     @FXML
     protected void onStartButtonClick() {
-        //TODO: Minecraft Launch method
-        boolean firstRun = settings.getProperty("firstRun", "true").equals("true");
-        if (firstRun) {
+        if (auth.isLoggedIn()) {
+            System.out.println("Already logged in. Starting Minecraft...");
+            //TODO: Minecraft Launch method
+            return;
+        }
 
+        // Open login window
+        openLoginWindow();
+    }
+
+    private void openLoginWindow() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("login-view.fxml"));
+            Parent root = loader.load();
+
+            LoginController loginController = loader.getController();
+            loginController.setAuth(auth);
+            loginController.setOnLoginSuccess(() -> {
+                // Update UI after successful login
+                updateUiForLoginState();
+            });
+
+            Stage stage = new Stage();
+            stage.setTitle("Microsoft アカウントでログイン");
+            stage.setScene(new Scene(root));
+            stage.setResizable(false);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Show error to user
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("エラー");
+            alert.setHeaderText("ログインウィンドウを開けませんでした");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    protected void onLogoutButtonClick() {
+        auth.logout();
+        updateUiForLoginState();
+    }
+
+    private void updateUiForLoginState() {
+        if (auth.isLoggedIn()) {
+            welcomeText.setText("ようこそ、 " + auth.getUsername() + " さん");
+            startButton.setText("開始");
+            logoutButton.setVisible(true);
+        } else {
+            welcomeText.setText("MRPG Launcher");
+            startButton.setText("ログイン");
+            logoutButton.setVisible(false);
         }
     }
 }
