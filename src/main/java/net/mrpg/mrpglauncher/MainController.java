@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -39,13 +40,13 @@ public class MainController implements Initializable {
     @FXML
     private ChoiceBox<String> episode_select;
     @FXML
-    private Label welcomeText;
-    @FXML
     private ProgressBar MCProgress;
     @FXML
     private Label DetailsLabel;
     @FXML
     private Button agreementButton;
+    @FXML
+    private StackPane black;
     @FXML
     private Button startButton;
     @FXML
@@ -66,6 +67,8 @@ public class MainController implements Initializable {
     private Button scrollLeftButton;
     @FXML
     private Button scrollRightButton;
+    @FXML
+    private StackPane rootPane;
 
     private Auth auth;
     private boolean isBarVisible = false;
@@ -83,6 +86,36 @@ public class MainController implements Initializable {
         setupSlideAnimation();
         configs = LaunchConfigManager.getConfigs();
         setupCarousel();
+        bottomButtonBox.setVisible(false);
+        // Add a click handler to the root pane to close the bottom bar
+        rootPane.setOnMouseClicked(event -> {
+        });
+    }
+    @FXML
+    private void onMouseClicked(MouseEvent event) {
+            if (isBarVisible) {
+                // Check if the click was outside the bottom bar and not on the toggle buttons
+                javafx.scene.Node target = (javafx.scene.Node) event.getTarget();
+                boolean isClickOnBarOrToggle = false;
+
+                if (target == toggleButton || target == toggleButtonUp) {
+                    isClickOnBarOrToggle = true;
+                }
+
+                javafx.scene.Node parent = target;
+                while (parent != null) {
+                    if (parent == bottomButtonBox) {
+                        isClickOnBarOrToggle = true;
+                        break;
+                    }
+                    parent = parent.getParent();
+                }
+
+                if (!isClickOnBarOrToggle) {
+                    hideBottomBar();
+                }
+            }
+
     }
 
     private void setupCarousel() {
@@ -93,7 +126,9 @@ public class MainController implements Initializable {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("config-card.fxml"));
                 StackPane cardNode = loader.load();
+                // Manually set the controller to the node's properties
                 ConfigCardController controller = loader.getController();
+                cardNode.getProperties().put("controller", controller);
                 controller.setData(configs.get(i));
 
                 final int index = i;
@@ -117,14 +152,19 @@ public class MainController implements Initializable {
         for (int i = 0; i < configContainer.getChildren().size(); i++) {
             try {
                 StackPane cardNode = (StackPane) configContainer.getChildren().get(i);
-                // The controller is stored as a property of the node when loaded via FXML
                 ConfigCardController controller = (ConfigCardController) cardNode.getProperties().get("controller");
+
+                if (controller.getConfig().getEpisode().equals("1")){
+                    rootPane.getStyleClass().remove("config-card-default");
+                    rootPane.getStyleClass().add("config-card-background-1");
+                }else {
+                    rootPane.getStyleClass().remove("config-card-background-1");
+                    rootPane.getStyleClass().add("config-card-default");
+                }
                 if (controller != null) {
                     controller.setSelected(i == currentConfigIndex);
                 }
             } catch (Exception e) {
-                // It's possible the node or controller isn't what we expect.
-                // In a real app, you might want to log this.
                 System.err.println("Could not update selection for card at index " + i);
             }
         }
@@ -162,39 +202,64 @@ public class MainController implements Initializable {
             double contentWidth = configContainer.getWidth();
             double scrollableWidth = contentWidth - viewportWidth;
 
-            // If content is not wider than the viewport, no scrolling is needed.
-            if (scrollableWidth <= 0) {
-                return;
-            }
-
             javafx.scene.Node card = configContainer.getChildren().get(index);
             Bounds cardBoundsInParent = card.getBoundsInParent();
             double cardCenterX = cardBoundsInParent.getMinX() + (cardBoundsInParent.getWidth() / 2.0);
-            double targetViewportLeftX = cardCenterX - (viewportWidth / 2.0);
-            double clampedTargetX = Math.max(0, Math.min(targetViewportLeftX, scrollableWidth));
-            double targetHValue = clampedTargetX / scrollableWidth;
 
-            // Smooth scroll animation
-            final double startHValue = configScrollPane.getHvalue();
-            final double deltaHValue = targetHValue - startHValue;
+            // Smooth animation setup
             final int duration = 300; // ms
             final long startTime = System.currentTimeMillis();
 
-            new javafx.animation.AnimationTimer() {
-                @Override
-                public void handle(long now) {
-                    long elapsed = System.currentTimeMillis() - startTime;
-                    if (elapsed >= duration) {
-                        configScrollPane.setHvalue(targetHValue);
-                        stop();
-                        return;
+            if (scrollableWidth <= 0) {
+                // --- Case 1: All content fits, use translation to center ---
+                configScrollPane.setHvalue(0); // Ensure no scrolling is active
+
+                double targetTranslateX = (viewportWidth / 2.0) - cardCenterX;
+
+                final double startTranslateX = configContainer.getTranslateX();
+                final double deltaTranslateX = targetTranslateX - startTranslateX;
+
+                new javafx.animation.AnimationTimer() {
+                    @Override
+                    public void handle(long now) {
+                        long elapsed = System.currentTimeMillis() - startTime;
+                        if (elapsed >= duration) {
+                            configContainer.setTranslateX(targetTranslateX);
+                            stop();
+                            return;
+                        }
+                        double progress = (double) elapsed / duration;
+                        progress = 1 - Math.pow(1 - progress, 3); // Ease-out
+                        configContainer.setTranslateX(startTranslateX + deltaTranslateX * progress);
                     }
-                    double progress = (double) elapsed / duration;
-                    // Ease-out interpolation
-                    progress = 1 - Math.pow(1 - progress, 3);
-                    configScrollPane.setHvalue(startHValue + deltaHValue * progress);
-                }
-            }.start();
+                }.start();
+
+            } else {
+                // --- Case 2: Content is scrollable, use hvalue ---
+                configContainer.setTranslateX(0); // Ensure no translation is active
+
+                double targetViewportLeftX = cardCenterX - (viewportWidth / 2.0);
+                double clampedTargetX = Math.max(0, Math.min(targetViewportLeftX, scrollableWidth));
+                double targetHValue = clampedTargetX / scrollableWidth;
+
+                final double startHValue = configScrollPane.getHvalue();
+                final double deltaHValue = targetHValue - startHValue;
+
+                new javafx.animation.AnimationTimer() {
+                    @Override
+                    public void handle(long now) {
+                        long elapsed = System.currentTimeMillis() - startTime;
+                        if (elapsed >= duration) {
+                            configScrollPane.setHvalue(targetHValue);
+                            stop();
+                            return;
+                        }
+                        double progress = (double) elapsed / duration;
+                        progress = 1 - Math.pow(1 - progress, 3); // Ease-out
+                        configScrollPane.setHvalue(startHValue + deltaHValue * progress);
+                    }
+                }.start();
+            }
         });
     }
 
@@ -210,16 +275,34 @@ public class MainController implements Initializable {
     @FXML
     protected void onToggleButtonClick() {
         if (isBarVisible) {
-            // Hide the bar
-            toggleButtonUp.setVisible(true);
-            slideTransition.setToY(400);
+            hideBottomBar();
         } else {
-            // Show the bar
+            showBottomBar();
+        }
+    }
+
+    private void showBottomBar() {
+        if (!isBarVisible) {
             toggleButtonUp.setVisible(false);
             slideTransition.setToY(0);
+            slideTransition.play();
+            isBarVisible = true;
+            bottomButtonBox.setVisible(true);
+            rootPane.getStyleClass().add("blur");
+            black.setVisible(true);
         }
-        slideTransition.play();
-        isBarVisible = !isBarVisible;
+    }
+
+    private void hideBottomBar() {
+        if (isBarVisible) {
+            toggleButtonUp.setVisible(true);
+            slideTransition.setToY(400);
+            slideTransition.play();
+            isBarVisible = false;
+            bottomButtonBox.setVisible(false);
+            rootPane.getStyleClass().remove("blur");
+            black.setVisible(false);
+        }
     }
 
     private void loadSettings() {
@@ -344,11 +427,9 @@ public class MainController implements Initializable {
 
     private void updateUiForLoginState() {
         if (auth.isLoggedIn()) {
-            welcomeText.setText("ようこそ、 " + auth.getUsername() + " さん");
             startButton.setText("開始");
             logoutButton.setVisible(true);
         } else {
-            welcomeText.setText("MRPG Launcher");
             startButton.setText("ログイン");
             logoutButton.setVisible(false);
         }

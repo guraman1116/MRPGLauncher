@@ -1,20 +1,20 @@
 [
   {
-    "name": "ClockAge",
+    "name": "EP1 ClockAge",
     "episode": "1",
     "minecraftVersion": "1.20.1",
     "description": "産業革命の時代。蒸気と歯車の技術が世界を変え、あらゆる仕組みが機械仕掛けで動き出した時代を舞台とする。",
     "repository": "tbd"
   },
   {
-    "name": "GearShift",
+    "name": "EP2 GearShift",
     "episode": "2",
     "minecraftVersion": "1.20.1",
     "description": "",
     "repository": "tbd"
   },
   {
-    "name": "FinalWork",
+    "name": "EP3 FinalWork",
     "episode": "3",
     "minecraftVersion": "1.21.1",
     "description": "",

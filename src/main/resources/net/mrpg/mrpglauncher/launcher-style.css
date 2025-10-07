@@ -145,6 +145,7 @@
 
 .config-card:selected {
     -fx-border-color: #007bff; /* A bright color to indicate selection */
+    -fx-border-width: 5;
     -fx-effect: dropshadow(gaussian, #007bff, 15, 0, 0, 0);
 }
 
@@ -154,4 +155,27 @@
     -fx-font-weight: bold;
     -fx-background-color: rgba(0, 0, 0, 0.5);
     -fx-background-radius: 0 5 5 0; /* Rounded corners on the right side */
+}
+
+.config-card-background-1 {
+    -fx-background-image: url("episode1.png");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
+}
+
+.config-card-default {
+    -fx-background-image: url("default.png");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
+}
+.blur {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 2);
+    -fx-border-style: double;
+    -fx-border-color: white;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    filter: blur(10px);
 }

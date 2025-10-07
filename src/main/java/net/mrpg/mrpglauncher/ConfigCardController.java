@@ -16,15 +16,10 @@ public class ConfigCardController {
 
     @FXML
     private Label configNameLabel;
-
+    private LaunchConfig config;
     public void setData(LaunchConfig config) {
         configNameLabel.setText(config.getName());
-        if (config.getEpisode().equals("1")) {
-            configImageView.setImage(new javafx.scene.image.Image(getClass().getResourceAsStream("episode1.png")));
-        }else {
-            configImageView.setImage(new javafx.scene.image.Image(getClass().getResourceAsStream("default.png")));
-        }
-
+        this.config = config;
         // Here you can set the image based on the config name
         // Example:
         // if (config.getName().toLowerCase().contains("episode1")) {
@@ -44,4 +39,9 @@ public class ConfigCardController {
             cardRoot.getStyleClass().remove("selected");
         }
     }
+
+    public LaunchConfig getConfig() {
+        return config;
+    }
+
 }

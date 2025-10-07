@@ -16,4 +16,5 @@ module net.mrpg.mrpglauncher {
     opens net.mrpg.mrpglauncher to javafx.fxml;
     opens net.mrpg.mrpglauncher.Minecraft to com.google.gson;
     exports net.mrpg.mrpglauncher;
+    exports net.mrpg.mrpglauncher.Minecraft;
 }
