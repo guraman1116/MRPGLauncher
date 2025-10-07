@@ -2,6 +2,7 @@ package net.mrpg.mrpglauncher.Minecraft;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import net.lenni0451.commons.httpclient.HttpClient;
 import net.raphimc.minecraftauth.MinecraftAuth;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
@@ -35,6 +36,8 @@ public class Auth {
             HttpClient httpClient = MinecraftAuth.createHttpClient();
             StepFullJavaSession.FullJavaSession javaSession = MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.getFromInput(httpClient, new StepMsaDeviceCode.MsaDeviceCodeCallback(msaDeviceCode -> {
                 // Method to generate a verification URL and a code for the user to enter on that page
+                System.out.println("Device code received: " + msaDeviceCode.getUserCode());
+                System.out.println("Verification URL: " + msaDeviceCode.getDirectVerificationUri());
 
                 // Call custom callback if provided
                 if (deviceCodeCallback != null) {
@@ -42,12 +45,17 @@ public class Auth {
                 }
             }));
 
+            System.out.println("Authentication successful!");
+            System.out.println("Username: " + javaSession.getMcProfile().getName());
+
             currentSession = javaSession;
             // Save session for future use
             saveSession();
 
             return true;
         } catch (Exception e) {
+            System.err.println("Authentication failed with error: " + e.getClass().getName());
+            System.err.println("Error message: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -77,7 +85,8 @@ public class Auth {
         try {
             if (Files.exists(SESSION_PATH)) {
                 String json = Files.readString(SESSION_PATH, StandardCharsets.UTF_8);
-                currentSession = GSON.fromJson(json, StepFullJavaSession.FullJavaSession.class);
+                com.google.gson.JsonObject jsonObject = GSON.fromJson(json, com.google.gson.JsonObject.class);
+                currentSession = MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.fromJson(jsonObject);
 
                 if (currentSession != null) {
                     System.out.println("Loaded saved session for: " + getUsername());
@@ -103,19 +112,21 @@ public class Auth {
     private void saveSession() {
         try {
             Files.createDirectories(SESSION_PATH.getParent());
-            String json = GSON.toJson(currentSession);
+            com.google.gson.JsonObject jsonObject = MinecraftAuth.JAVA_DEVICE_CODE_LOGIN.toJson(currentSession);
+            String json = GSON.toJson(jsonObject);
             Files.writeString(SESSION_PATH, json, StandardCharsets.UTF_8);
             System.out.println("Session saved successfully");
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("Failed to save session: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     private boolean shouldRefreshSession() {
-        // Check if the session needs to be refreshed
-        // You might want to check token expiration here
-        return false; // For now, assume sessions are valid
+        if (currentSession == null) {
+            return false;
+        }
+        return currentSession.isExpiredOrOutdated();
     }
 
     private void refreshSession() {

@@ -1,5 +1,6 @@
 package net.mrpg.mrpglauncher;
 
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -9,7 +10,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import net.mrpg.mrpglauncher.Minecraft.Auth;
 
 import java.io.*;
@@ -25,7 +28,8 @@ public class MainController implements Initializable {
 
     private final Properties settings = new Properties();
     private final Path settingsPath = Paths.get(System.getProperty("user.home"), ".mrpglauncher", "settings.properties");
-
+    @FXML
+    private ChoiceBox<String> episode_select;
     @FXML
     private Label welcomeText;
     @FXML
@@ -38,8 +42,16 @@ public class MainController implements Initializable {
     private Button startButton;
     @FXML
     private Button logoutButton;
+    @FXML
+    private Button toggleButton;
+    @FXML
+    private ButtonBar bottomButtonBar;
+    @FXML
+    private VBox bottomButtonBox;
 
     private Auth auth;
+    private boolean isBarVisible = false;
+    private TranslateTransition slideTransition;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -47,6 +59,31 @@ public class MainController implements Initializable {
         updateButtonStates();
         auth = new Auth();
         updateUiForLoginState();
+        setupSlideAnimation();
+    }
+
+    private void setupSlideAnimation() {
+        // Initially hide the button bar by translating it down
+        double barHeight = 100; // Approximate height to hide the bar
+        bottomButtonBox.setTranslateY(barHeight);
+
+        // Create the slide animation
+        slideTransition = new TranslateTransition(Duration.millis(300), bottomButtonBox);
+    }
+
+    @FXML
+    protected void onToggleButtonClick() {
+        if (isBarVisible) {
+            // Hide the bar
+            slideTransition.setToY(100);
+            toggleButton.setText("▲");
+        } else {
+            // Show the bar
+            slideTransition.setToY(0);
+            toggleButton.setText("▼");
+        }
+        slideTransition.play();
+        isBarVisible = !isBarVisible;
     }
 
     private void loadSettings() {

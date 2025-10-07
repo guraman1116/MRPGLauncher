@@ -3,6 +3,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
 
 <VBox alignment="CENTER" prefHeight="600.0" prefWidth="800.0" spacing="20.0" stylesheets="@launcher-style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.mrpg.mrpglauncher.MainController">
     <padding>
@@ -10,20 +11,45 @@
     </padding>
 
     <Label fx:id="welcomeText" styleClass="h1" text="MRPG Launcher" />
-   <VBox alignment="BOTTOM_CENTER" prefHeight="700.0">
+   <VBox alignment="BOTTOM_CENTER" prefHeight="700.0" VBox.vgrow="ALWAYS">
       <children>
          <Label fx:id="DetailsLabel" alignment="CENTER" />
          <ProgressBar fx:id="MCProgress" prefWidth="600.0" progress="0.0" styleClass="progress-bar, progress-bar-striped, progress-bar-animated" visible="false" />
-         <ButtonBar buttonMinWidth="100.0" prefHeight="40.0" prefWidth="100.0">
-            <buttons>
-                <Button fx:id="logoutButton" mnemonicParsing="false" onAction="#onLogoutButtonClick" prefWidth="150.0" styleClass="btn, btn-danger" text="ログアウト" visible="false" />
-                <Button fx:id="agreementButton" mnemonicParsing="false" onAction="#onAgreementButtonClick" prefWidth="100.0" styleClass="btn, btn-default" text="利用規約" />
-                <Button fx:id="startButton" onAction="#onStartButtonClick" prefWidth="150.0" styleClass="btn, btn-primary" text="開始" />
-            </buttons>
-            <VBox.margin>
-               <Insets left="60.0" right="60.0" />
-            </VBox.margin>
-         </ButtonBar>
+         <VBox fx:id="bottomButtonBox" alignment="BOTTOM_CENTER" prefHeight="200.0" prefWidth="100.0">
+            <children>
+      
+               <!-- Toggle button for showing/hiding button bar -->
+               <Button fx:id="toggleButton" onAction="#onToggleButtonClick" styleClass="toggle-button" text="▲">
+                  <VBox.margin>
+                     <Insets bottom="10.0" />
+                  </VBox.margin>
+               </Button>
+      
+               <!-- Button bar that slides in/out -->
+               <ButtonBar fx:id="bottomButtonBar" buttonMinWidth="100.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="100.0">
+                  <buttons>
+                      <Button fx:id="logoutButton" mnemonicParsing="false" onAction="#onLogoutButtonClick" ButtonBar.buttonData="LEFT" prefWidth="150.0" styleClass="button,btn, btn-danger" text="ログアウト" visible="false" />
+                      <Button fx:id="agreementButton" mnemonicParsing="false" onAction="#onAgreementButtonClick" ButtonBar.buttonData="RIGHT" prefWidth="150.0" styleClass="button,btn, btn-default" text="利用規約" />
+                      <Button fx:id="startButton" onAction="#onStartButtonClick" prefWidth="150.0" ButtonBar.buttonData="RIGHT" styleClass="button,btn, btn-primary" text="開始">
+                      <graphic>
+                          <FontIcon iconLiteral="mdi-account" />
+                      </graphic>
+                     </Button>
+                     <Button mnemonicParsing="false" prefWidth="150.0" styleClass="button, btn, btn-default" ButtonBar.buttonData="LEFT" text="設定">
+                        <graphic>
+                            <FontIcon iconLiteral="mdi-settings" />
+                        </graphic>
+                     </Button>
+                  </buttons>
+                  <VBox.margin>
+                     <Insets bottom="10.0" left="60.0" right="60.0" />
+                  </VBox.margin>
+                  <padding>
+                     <Insets bottom="10.0" />
+                  </padding>
+               </ButtonBar>
+            </children>
+         </VBox>
       </children>
    </VBox>
 </VBox>

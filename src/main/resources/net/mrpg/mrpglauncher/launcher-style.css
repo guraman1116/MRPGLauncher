@@ -18,4 +18,82 @@
 .button {
     -fx-font-size: 24px;
     -fx-font-family: "MS UI Gothic";
+    -fx-text-fill: white;
+    -fx-border-radius: 5%;
+    -fx-background-radius: 5%;
+    -fx-background-color: transparent;
+    -fx-border-color: white;
+    -fx-border-width: 2px;
+    -fx-background-insets: 0;
+}
+
+/* ボタンのホバー時 */
+.button:hover {
+    -fx-border-style: solid;
+    -fx-background-color: white;
+    -fx-text-fill: #2B2B2B;
+    -fx-border-color: white;
+    -fx-background-insets: 0;
+    -fx-border-insets: 1 1 1 1, 0;
+}
+/* btn系のボタン */
+.btn {
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+    -fx-border-color: white;
+    -fx-border-width: 2px;
+    -fx-background-radius: 5%;
+    -fx-border-radius: 5%;
+    -fx-background-insets: 0;
+}
+
+.btn:hover {
+    -fx-background-color: white;
+    -fx-text-fill: #2B2B2B;
+    -fx-background-radius: 15%;
+    -fx-border-radius: 15%;
+    -fx-background-insets: 0;
+}
+
+/* 開始ボタン用 */
+.btn-primary:hover {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-border-color: #4CAF50;
+    -fx-background-radius: 5%;
+    -fx-border-radius: 5%;
+    -fx-background-insets: 0;
+}
+
+/* ログアウトボタン用 */
+.btn-danger:hover {
+    -fx-background-color: #f44336;
+    -fx-text-fill: white;
+    -fx-border-color: #f44336;
+    -fx-background-radius: 5%;
+    -fx-border-radius: 5%;
+    -fx-background-insets: 0;
+}
+
+/* 利用規約ボタン用 */
+.btn-default:hover {
+    -fx-background-color: white;
+    -fx-text-fill: #2B2B2B;
+    -fx-background-radius: 5%;
+    -fx-border-radius: 5%;
+    -fx-background-insets: 0;
+}
+
+/* トグルボタン（矢印ボタン）*/
+.toggle-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.toggle-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 50%;
 }
