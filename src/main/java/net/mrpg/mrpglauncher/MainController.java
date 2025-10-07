@@ -1,19 +1,25 @@
 package net.mrpg.mrpglauncher;
 
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import net.mrpg.mrpglauncher.Minecraft.Auth;
+import net.mrpg.mrpglauncher.Minecraft.LaunchConfig;
+import net.mrpg.mrpglauncher.Minecraft.LaunchConfigManager;
 
 import java.io.*;
 import java.net.URL;
@@ -21,13 +27,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Stack;
 
 public class MainController implements Initializable {
 
     private final Properties settings = new Properties();
-    private final Path settingsPath = Paths.get(System.getProperty("user.home"), ".mrpglauncher", "settings.properties");
+    private final Path settingsPath = Paths.get(System.getProperty("user.home"), ".mrpg-launcher", "settings.properties");
     @FXML
     private ChoiceBox<String> episode_select;
     @FXML
@@ -45,26 +53,154 @@ public class MainController implements Initializable {
     @FXML
     private Button toggleButton;
     @FXML
+    private Button toggleButtonUp;
+    @FXML
     private ButtonBar bottomButtonBar;
     @FXML
     private VBox bottomButtonBox;
+    @FXML
+    private HBox configContainer;
+    @FXML
+    private ScrollPane configScrollPane;
+    @FXML
+    private Button scrollLeftButton;
+    @FXML
+    private Button scrollRightButton;
 
     private Auth auth;
     private boolean isBarVisible = false;
     private TranslateTransition slideTransition;
+    private int currentConfigIndex = 0;
+    private List<LaunchConfig> configs;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loadSettings();
         updateButtonStates();
         auth = new Auth();
+        LaunchConfigManager.init();
         updateUiForLoginState();
         setupSlideAnimation();
+        configs = LaunchConfigManager.getConfigs();
+        setupCarousel();
+    }
+
+    private void setupCarousel() {
+        configContainer.getChildren().clear();
+        if (configs == null) return;
+
+        for (int i = 0; i < configs.size(); i++) {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("config-card.fxml"));
+                StackPane cardNode = loader.load();
+                ConfigCardController controller = loader.getController();
+                controller.setData(configs.get(i));
+
+                final int index = i;
+                cardNode.setOnMouseClicked(event -> {
+                    currentConfigIndex = index;
+                    updateCarouselSelection();
+                });
+
+                configContainer.getChildren().add(cardNode);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (!configs.isEmpty()) {
+            updateCarouselSelection();
+        }
+    }
+
+    private void updateCarouselSelection() {
+        for (int i = 0; i < configContainer.getChildren().size(); i++) {
+            try {
+                StackPane cardNode = (StackPane) configContainer.getChildren().get(i);
+                // The controller is stored as a property of the node when loaded via FXML
+                ConfigCardController controller = (ConfigCardController) cardNode.getProperties().get("controller");
+                if (controller != null) {
+                    controller.setSelected(i == currentConfigIndex);
+                }
+            } catch (Exception e) {
+                // It's possible the node or controller isn't what we expect.
+                // In a real app, you might want to log this.
+                System.err.println("Could not update selection for card at index " + i);
+            }
+        }
+        scrollToIndex(currentConfigIndex);
+    }
+
+    @FXML
+    protected void onScrollLeft() {
+        if (currentConfigIndex > 0) {
+            currentConfigIndex--;
+            updateCarouselSelection();
+        }
+    }
+
+    @FXML
+    protected void onScrollRight() {
+        if (currentConfigIndex < configs.size() - 1) {
+            currentConfigIndex++;
+            updateCarouselSelection();
+        }
+    }
+
+    private void scrollToIndex(int index) {
+        if (configContainer.getChildren().isEmpty() || index < 0 || index >= configContainer.getChildren().size()) {
+            return;
+        }
+
+        // We need to wait for the layout pass to get accurate widths.
+        Platform.runLater(() -> {
+            double viewportWidth = configScrollPane.getViewportBounds().getWidth();
+            if (viewportWidth <= 0) {
+                return; // Avoid calculations if the UI is not ready
+            }
+
+            double contentWidth = configContainer.getWidth();
+            double scrollableWidth = contentWidth - viewportWidth;
+
+            // If content is not wider than the viewport, no scrolling is needed.
+            if (scrollableWidth <= 0) {
+                return;
+            }
+
+            javafx.scene.Node card = configContainer.getChildren().get(index);
+            Bounds cardBoundsInParent = card.getBoundsInParent();
+            double cardCenterX = cardBoundsInParent.getMinX() + (cardBoundsInParent.getWidth() / 2.0);
+            double targetViewportLeftX = cardCenterX - (viewportWidth / 2.0);
+            double clampedTargetX = Math.max(0, Math.min(targetViewportLeftX, scrollableWidth));
+            double targetHValue = clampedTargetX / scrollableWidth;
+
+            // Smooth scroll animation
+            final double startHValue = configScrollPane.getHvalue();
+            final double deltaHValue = targetHValue - startHValue;
+            final int duration = 300; // ms
+            final long startTime = System.currentTimeMillis();
+
+            new javafx.animation.AnimationTimer() {
+                @Override
+                public void handle(long now) {
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    if (elapsed >= duration) {
+                        configScrollPane.setHvalue(targetHValue);
+                        stop();
+                        return;
+                    }
+                    double progress = (double) elapsed / duration;
+                    // Ease-out interpolation
+                    progress = 1 - Math.pow(1 - progress, 3);
+                    configScrollPane.setHvalue(startHValue + deltaHValue * progress);
+                }
+            }.start();
+        });
     }
 
     private void setupSlideAnimation() {
         // Initially hide the button bar by translating it down
-        double barHeight = 100; // Approximate height to hide the bar
+        double barHeight = 400; // Approximate height to hide the bar
         bottomButtonBox.setTranslateY(barHeight);
 
         // Create the slide animation
@@ -75,12 +211,12 @@ public class MainController implements Initializable {
     protected void onToggleButtonClick() {
         if (isBarVisible) {
             // Hide the bar
-            slideTransition.setToY(100);
-            toggleButton.setText("▲");
+            toggleButtonUp.setVisible(true);
+            slideTransition.setToY(400);
         } else {
             // Show the bar
+            toggleButtonUp.setVisible(false);
             slideTransition.setToY(0);
-            toggleButton.setText("▼");
         }
         slideTransition.play();
         isBarVisible = !isBarVisible;

@@ -14,5 +14,6 @@ module net.mrpg.mrpglauncher {
     requires java.desktop;
 
     opens net.mrpg.mrpglauncher to javafx.fxml;
+    opens net.mrpg.mrpglauncher.Minecraft to com.google.gson;
     exports net.mrpg.mrpglauncher;
 }

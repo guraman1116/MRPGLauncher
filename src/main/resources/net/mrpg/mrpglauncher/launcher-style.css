@@ -97,3 +97,61 @@
     -fx-background-color: rgba(255, 255, 255, 0.1);
     -fx-background-radius: 50%;
 }
+
+/* Added styles for carousel */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Hide scroll bars */
+.scroll-pane > .scroll-bar:horizontal,
+.scroll-pane > .scroll-bar:vertical {
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}
+
+.scroll-button {
+    -fx-background-color: rgba(40, 40, 40, 0.7);
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-shape: "M 0,15 a 15,15 0 1,1 0,0.01 z"; /* Circle shape */
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+    -fx-pref-width: 40px;
+    -fx-pref-height: 40px;
+}
+
+.scroll-button:hover {
+    -fx-background-color: rgba(60, 60, 60, 0.9);
+}
+
+.config-card {
+    -fx-padding: 0; /* Remove padding to let the image fill the space */
+    -fx-background-color: transparent; /* Make background transparent */
+    -fx-border-color: #555;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-min-width: 500px;
+    -fx-min-height: 350px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 2);
+}
+
+.config-card:selected {
+    -fx-border-color: #007bff; /* A bright color to indicate selection */
+    -fx-effect: dropshadow(gaussian, #007bff, 15, 0, 0, 0);
+}
+
+.config-card-label {
+    -fx-text-fill: white;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-background-color: rgba(0, 0, 0, 0.5);
+    -fx-background-radius: 0 5 5 0; /* Rounded corners on the right side */
+}
