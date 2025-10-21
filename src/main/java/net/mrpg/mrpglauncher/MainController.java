@@ -1,20 +1,17 @@
 package net.mrpg.mrpglauncher;
 
-import javafx.animation.TranslateTransition;
-import javafx.application.Platform;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -31,279 +28,172 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.Stack;
 
 public class MainController implements Initializable {
 
     private final Properties settings = new Properties();
     private final Path settingsPath = Paths.get(System.getProperty("user.home"), ".mrpg-launcher", "settings.properties");
-    @FXML
-    private ChoiceBox<String> episode_select;
-    @FXML
-    private ProgressBar MCProgress;
-    @FXML
-    private Label DetailsLabel;
-    @FXML
-    private Button agreementButton;
-    @FXML
-    private StackPane black;
-    @FXML
-    private Button startButton;
-    @FXML
-    private Button logoutButton;
-    @FXML
-    private Button toggleButton;
-    @FXML
-    private Button toggleButtonUp;
-    @FXML
-    private ButtonBar bottomButtonBar;
-    @FXML
-    private VBox bottomButtonBox;
-    @FXML
-    private HBox configContainer;
-    @FXML
-    private ScrollPane configScrollPane;
-    @FXML
-    private Button scrollLeftButton;
-    @FXML
-    private Button scrollRightButton;
-    @FXML
-    private StackPane rootPane;
+
+    // FXML UI Components
+    @FXML private BorderPane rootPane;
+    @FXML private VBox sidebar;
+    @FXML private ScrollPane configScrollPane;
+    @FXML private VBox configContainer;
+    @FXML private BorderPane mainContent;
+    @FXML private Label configNameLabel;
+    @FXML private Label configDescriptionLabel;
+    @FXML private Button startButton;
+    @FXML private Button logoutButton;
+    @FXML private Button agreementButton;
+    @FXML private ProgressBar progressBar;
+    @FXML private Button sidebarToggleButton;
+
 
     private Auth auth;
-    private boolean isBarVisible = false;
-    private TranslateTransition slideTransition;
-    private int currentConfigIndex = 0;
     private List<LaunchConfig> configs;
+    private int currentConfigIndex = -1;
+    private boolean isLaunching = false;
+    private boolean isSidebarVisible = true;
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loadSettings();
         updateButtonStates();
         auth = new Auth();
-        LaunchConfigManager.init();
         updateUiForLoginState();
-        setupSlideAnimation();
+    }
+
+    public void postInit(Path configPath) {
+        LaunchConfigManager.init(configPath);
         configs = LaunchConfigManager.getConfigs();
-        setupCarousel();
-        bottomButtonBox.setVisible(false);
-        // Add a click handler to the root pane to close the bottom bar
-        rootPane.setOnMouseClicked(event -> {
-        });
-    }
-    @FXML
-    private void onMouseClicked(MouseEvent event) {
-            if (isBarVisible) {
-                // Check if the click was outside the bottom bar and not on the toggle buttons
-                javafx.scene.Node target = (javafx.scene.Node) event.getTarget();
-                boolean isClickOnBarOrToggle = false;
 
-                if (target == toggleButton || target == toggleButtonUp) {
-                    isClickOnBarOrToggle = true;
-                }
+        populateSidebar();
 
-                javafx.scene.Node parent = target;
-                while (parent != null) {
-                    if (parent == bottomButtonBox) {
-                        isClickOnBarOrToggle = true;
-                        break;
-                    }
-                    parent = parent.getParent();
-                }
-
-                if (!isClickOnBarOrToggle) {
-                    hideBottomBar();
-                }
-            }
-
+        if (!configs.isEmpty()) {
+            // Select the first config by default
+            currentConfigIndex = 0;
+            updateSidebarSelection();
+            updateMainContent(configs.get(currentConfigIndex));
+        } else {
+            // Handle case with no configs
+            configNameLabel.setText("利用可能な構成がありません");
+            configDescriptionLabel.setText("構成ファイルを確認してください。");
+            startButton.setDisable(true);
+        }
     }
 
-    private void setupCarousel() {
+    private void populateSidebar() {
         configContainer.getChildren().clear();
         if (configs == null) return;
 
         for (int i = 0; i < configs.size(); i++) {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("config-card.fxml"));
-                StackPane cardNode = loader.load();
-                // Manually set the controller to the node's properties
-                ConfigCardController controller = loader.getController();
-                cardNode.getProperties().put("controller", controller);
-                controller.setData(configs.get(i));
-
-                final int index = i;
-                cardNode.setOnMouseClicked(event -> {
+            LaunchConfig config = configs.get(i);
+            Button configButton = new Button(config.getName());
+            configButton.getStyleClass().add("nav-button");
+            final int index = i;
+            configButton.setOnAction(event -> {
+                if (!isLaunching) {
                     currentConfigIndex = index;
-                    updateCarouselSelection();
-                });
-
-                configContainer.getChildren().add(cardNode);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (!configs.isEmpty()) {
-            updateCarouselSelection();
+                    updateSidebarSelection();
+                    updateMainContent(configs.get(index));
+                }
+            });
+            configContainer.getChildren().add(configButton);
         }
     }
 
-    private void updateCarouselSelection() {
+    private void updateSidebarSelection() {
         for (int i = 0; i < configContainer.getChildren().size(); i++) {
-            try {
-                StackPane cardNode = (StackPane) configContainer.getChildren().get(i);
-                ConfigCardController controller = (ConfigCardController) cardNode.getProperties().get("controller");
-
-                if (controller.getConfig().getEpisode().equals("1")){
-                    rootPane.getStyleClass().remove("config-card-default");
-                    rootPane.getStyleClass().add("config-card-background-1");
-                }else {
-                    rootPane.getStyleClass().remove("config-card-background-1");
-                    rootPane.getStyleClass().add("config-card-default");
-                }
-                if (controller != null) {
-                    controller.setSelected(i == currentConfigIndex);
-                }
-            } catch (Exception e) {
-                System.err.println("Could not update selection for card at index " + i);
+            javafx.scene.Node node = configContainer.getChildren().get(i);
+            node.getStyleClass().remove("selected");
+            if (i == currentConfigIndex) {
+                node.getStyleClass().add("selected");
             }
         }
-        scrollToIndex(currentConfigIndex);
     }
 
-    @FXML
-    protected void onScrollLeft() {
-        if (currentConfigIndex > 0) {
-            currentConfigIndex--;
-            updateCarouselSelection();
+    private void updateMainContent(LaunchConfig config) {
+        if (config != null) {
+            configNameLabel.setText(config.getName());
+            configDescriptionLabel.setText(config.getDescription());
         }
     }
 
     @FXML
-    protected void onScrollRight() {
-        if (currentConfigIndex < configs.size() - 1) {
-            currentConfigIndex++;
-            updateCarouselSelection();
-        }
-    }
-
-    private void scrollToIndex(int index) {
-        if (configContainer.getChildren().isEmpty() || index < 0 || index >= configContainer.getChildren().size()) {
+    protected void onStartButtonClick() {
+        if (isLaunching) {
+            // Cancel logic
+            cancelLaunch();
             return;
         }
 
-        // We need to wait for the layout pass to get accurate widths.
-        Platform.runLater(() -> {
-            double viewportWidth = configScrollPane.getViewportBounds().getWidth();
-            if (viewportWidth <= 0) {
-                return; // Avoid calculations if the UI is not ready
-            }
-
-            double contentWidth = configContainer.getWidth();
-            double scrollableWidth = contentWidth - viewportWidth;
-
-            javafx.scene.Node card = configContainer.getChildren().get(index);
-            Bounds cardBoundsInParent = card.getBoundsInParent();
-            double cardCenterX = cardBoundsInParent.getMinX() + (cardBoundsInParent.getWidth() / 2.0);
-
-            // Smooth animation setup
-            final int duration = 300; // ms
-            final long startTime = System.currentTimeMillis();
-
-            if (scrollableWidth <= 0) {
-                // --- Case 1: All content fits, use translation to center ---
-                configScrollPane.setHvalue(0); // Ensure no scrolling is active
-
-                double targetTranslateX = (viewportWidth / 2.0) - cardCenterX;
-
-                final double startTranslateX = configContainer.getTranslateX();
-                final double deltaTranslateX = targetTranslateX - startTranslateX;
-
-                new javafx.animation.AnimationTimer() {
-                    @Override
-                    public void handle(long now) {
-                        long elapsed = System.currentTimeMillis() - startTime;
-                        if (elapsed >= duration) {
-                            configContainer.setTranslateX(targetTranslateX);
-                            stop();
-                            return;
-                        }
-                        double progress = (double) elapsed / duration;
-                        progress = 1 - Math.pow(1 - progress, 3); // Ease-out
-                        configContainer.setTranslateX(startTranslateX + deltaTranslateX * progress);
-                    }
-                }.start();
-
-            } else {
-                // --- Case 2: Content is scrollable, use hvalue ---
-                configContainer.setTranslateX(0); // Ensure no translation is active
-
-                double targetViewportLeftX = cardCenterX - (viewportWidth / 2.0);
-                double clampedTargetX = Math.max(0, Math.min(targetViewportLeftX, scrollableWidth));
-                double targetHValue = clampedTargetX / scrollableWidth;
-
-                final double startHValue = configScrollPane.getHvalue();
-                final double deltaHValue = targetHValue - startHValue;
-
-                new javafx.animation.AnimationTimer() {
-                    @Override
-                    public void handle(long now) {
-                        long elapsed = System.currentTimeMillis() - startTime;
-                        if (elapsed >= duration) {
-                            configScrollPane.setHvalue(targetHValue);
-                            stop();
-                            return;
-                        }
-                        double progress = (double) elapsed / duration;
-                        progress = 1 - Math.pow(1 - progress, 3); // Ease-out
-                        configScrollPane.setHvalue(startHValue + deltaHValue * progress);
-                    }
-                }.start();
-            }
-        });
+        if (auth.isLoggedIn()) {
+            startLaunch();
+        } else {
+            openLoginWindow();
+        }
     }
 
-    private void setupSlideAnimation() {
-        // Initially hide the button bar by translating it down
-        double barHeight = 400; // Approximate height to hide the bar
-        bottomButtonBox.setTranslateY(barHeight);
+    private void startLaunch() {
+        isLaunching = true;
+        startButton.setText("キャンセル");
+        startButton.getStyleClass().add("cancel");
+        progressBar.setVisible(true);
+        progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS); // Indeterminate progress
+        setSidebarCollapsed(true); // Collapse sidebar
 
-        // Create the slide animation
-        slideTransition = new TranslateTransition(Duration.millis(300), bottomButtonBox);
+        // Disable sidebar buttons
+        configContainer.getChildren().forEach(node -> node.setDisable(true));
+
+        System.out.println("Starting Minecraft...");
+        //TODO: Add actual Minecraft Launch method here
+    }
+
+    private void cancelLaunch() {
+        isLaunching = false;
+        startButton.setText("開始");
+        startButton.getStyleClass().remove("cancel");
+        progressBar.setVisible(false);
+        progressBar.setProgress(0);
+        setSidebarCollapsed(false); // Expand sidebar
+
+        // Enable sidebar buttons
+        configContainer.getChildren().forEach(node -> node.setDisable(false));
+
+        System.out.println("Launch cancelled.");
+        //TODO: Add any necessary cancellation logic for the launch process
     }
 
     @FXML
-    protected void onToggleButtonClick() {
-        if (isBarVisible) {
-            hideBottomBar();
-        } else {
-            showBottomBar();
-        }
+    protected void toggleSidebar() {
+        setSidebarCollapsed(!isSidebarVisible);
     }
 
-    private void showBottomBar() {
-        if (!isBarVisible) {
-            toggleButtonUp.setVisible(false);
-            slideTransition.setToY(0);
-            slideTransition.play();
-            isBarVisible = true;
-            bottomButtonBox.setVisible(true);
-            rootPane.getStyleClass().add("blur");
-            black.setVisible(true);
+    private void setSidebarCollapsed(boolean collapsed) {
+        if (collapsed == !isSidebarVisible) return; // No change
+
+        isSidebarVisible = !collapsed;
+        final double targetWidth = collapsed ? 0 : 280.0;
+
+        // Animate sidebar width
+        Timeline timeline = new Timeline();
+        KeyValue kv = new KeyValue(sidebar.prefWidthProperty(), targetWidth);
+        KeyFrame kf = new KeyFrame(Duration.millis(300), kv);
+        timeline.getKeyFrames().add(kf);
+        timeline.setOnFinished(event -> {
+            sidebar.setVisible(!collapsed);
+            sidebar.setManaged(!collapsed);
+        });
+
+        if (!collapsed) {
+            sidebar.setVisible(true);
+            sidebar.setManaged(true);
         }
+
+        timeline.play();
     }
 
-    private void hideBottomBar() {
-        if (isBarVisible) {
-            toggleButtonUp.setVisible(true);
-            slideTransition.setToY(400);
-            slideTransition.play();
-            isBarVisible = false;
-            bottomButtonBox.setVisible(false);
-            rootPane.getStyleClass().remove("blur");
-            black.setVisible(false);
-        }
-    }
 
     private void loadSettings() {
         try {
@@ -379,18 +269,6 @@ public class MainController implements Initializable {
         }
     }
 
-    @FXML
-    protected void onStartButtonClick() {
-        if (auth.isLoggedIn()) {
-            System.out.println("Already logged in. Starting Minecraft...");
-            //TODO: Minecraft Launch method
-            return;
-        }
-
-        // Open login window
-        openLoginWindow();
-    }
-
     private void openLoginWindow() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("login-view.fxml"));
@@ -399,8 +277,9 @@ public class MainController implements Initializable {
             LoginController loginController = loader.getController();
             loginController.setAuth(auth);
             loginController.setOnLoginSuccess(() -> {
-                // Update UI after successful login
                 updateUiForLoginState();
+                // Automatically start launch after successful login
+                startLaunch();
             });
 
             Stage stage = new Stage();
@@ -410,7 +289,6 @@ public class MainController implements Initializable {
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            // Show error to user
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("エラー");
             alert.setHeaderText("ログインウィンドウを開けませんでした");
@@ -428,10 +306,9 @@ public class MainController implements Initializable {
     private void updateUiForLoginState() {
         if (auth.isLoggedIn()) {
             startButton.setText("開始");
-            logoutButton.setVisible(true);
         } else {
             startButton.setText("ログイン");
-            logoutButton.setVisible(false);
         }
+        logoutButton.setVisible(auth.isLoggedIn());
     }
 }

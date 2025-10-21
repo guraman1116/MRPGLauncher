@@ -1,181 +1,144 @@
-/* ルート要素の背景色をダーク系に設定 */
+/* ===== Root and Typography ===== */
 .root {
-    -fx-background-color: #2B2B2B;
+    -fx-background-color: #2f3136; /* Discord's dark background */
+    -fx-font-family: "Roboto", "Noto Sans JP", sans-serif;
 }
 
-/* ラベルの文字色を白に設定 */
 .label {
-    -fx-text-fill: white;
+    -fx-text-fill: #dcddde; /* Discord's light gray text */
 }
 
-/* h1スタイルの文字サイズを調整 */
-.h1 {
+/* ===== Sidebar ===== */
+.sidebar {
+    -fx-background-color: #202225; /* Discord's server list background */
+}
+
+.sidebar-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-padding: 0 0 15px 0;
+    -fx-graphic-text-gap: 10;
+}
+
+.config-list-scroll-pane {
+    -fx-background-color: transparent;
+}
+.config-list-scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+.config-list-scroll-pane > .scroll-bar:vertical {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+}
+
+.nav-button {
+    -fx-background-color: #2f3136;
+    -fx-text-fill: #dcddde;
+    -fx-font-size: 16px;
+    -fx-padding: 10 15;
+    -fx-alignment: center-left;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 15;
+    -fx-border-width: 2px;
+    -fx-border-color: transparent;
+    -fx-pref-width: 250px; /* Fill sidebar width */
+
+    -fx-transition-property: -fx-background-color, -fx-border-color;
+    -fx-transition-duration: 0.2s;
+    -fx-transition-timing-function: ease-in-out;
+}
+
+.nav-button:hover {
+    -fx-background-color: #36393f; /* Slightly lighter on hover */
+}
+
+.nav-button.selected {
+    -fx-background-color: #40444b;
+    -fx-border-color: #7289da; /* Discord's blurple */
+}
+
+/* ===== Main Content Area ===== */
+.content-area {
+    -fx-background-color: #36393f; /* Discord's main content background */
+}
+
+.content-header {
+    -fx-text-fill: white;
     -fx-font-size: 32px;
     -fx-font-weight: bold;
 }
 
-/* ボタンのフォントを設定 */
-.button {
-    -fx-font-size: 24px;
-    -fx-font-family: "MS UI Gothic";
-    -fx-text-fill: white;
-    -fx-border-radius: 5%;
-    -fx-background-radius: 5%;
-    -fx-background-color: transparent;
-    -fx-border-color: white;
-    -fx-border-width: 2px;
-    -fx-background-insets: 0;
+.config-description {
+    -fx-font-size: 16px;
+    -fx-text-fill: #b9bbbe; /* Lighter gray for descriptions */
+    -fx-max-width: 600px;
 }
 
-/* ボタンのホバー時 */
-.button:hover {
-    -fx-border-style: solid;
-    -fx-background-color: white;
-    -fx-text-fill: #2B2B2B;
-    -fx-border-color: white;
-    -fx-background-insets: 0;
-    -fx-border-insets: 1 1 1 1, 0;
-}
-/* btn系のボタン */
-.btn {
-    -fx-text-fill: white;
-    -fx-background-color: transparent;
-    -fx-border-color: white;
-    -fx-border-width: 2px;
-    -fx-background-radius: 5%;
-    -fx-border-radius: 5%;
-    -fx-background-insets: 0;
-}
-
-.btn:hover {
-    -fx-background-color: white;
-    -fx-text-fill: #2B2B2B;
-    -fx-background-radius: 15%;
-    -fx-border-radius: 15%;
-    -fx-background-insets: 0;
-}
-
-/* 開始ボタン用 */
-.btn-primary:hover {
-    -fx-background-color: #4CAF50;
-    -fx-text-fill: white;
-    -fx-border-color: #4CAF50;
-    -fx-background-radius: 5%;
-    -fx-border-radius: 5%;
-    -fx-background-insets: 0;
-}
-
-/* ログアウトボタン用 */
-.btn-danger:hover {
-    -fx-background-color: #f44336;
-    -fx-text-fill: white;
-    -fx-border-color: #f44336;
-    -fx-background-radius: 5%;
-    -fx-border-radius: 5%;
-    -fx-background-insets: 0;
-}
-
-/* 利用規約ボタン用 */
-.btn-default:hover {
-    -fx-background-color: white;
-    -fx-text-fill: #2B2B2B;
-    -fx-background-radius: 5%;
-    -fx-border-radius: 5%;
-    -fx-background-insets: 0;
-}
-
-/* トグルボタン（矢印ボタン）*/
-.toggle-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: white;
-    -fx-font-size: 24px;
-    -fx-border-color: transparent;
-    -fx-cursor: hand;
-}
-
-.toggle-button:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.1);
-    -fx-background-radius: 50%;
-}
-
-/* Added styles for carousel */
-.scroll-pane {
-    -fx-background-color: transparent;
-}
-
-.scroll-pane .viewport {
-    -fx-background-color: transparent;
-}
-
-/* Hide scroll bars */
-.scroll-pane > .scroll-bar:horizontal,
-.scroll-pane > .scroll-bar:vertical {
-    -fx-pref-width: 0;
-    -fx-pref-height: 0;
-    -fx-opacity: 0;
-}
-
-.scroll-button {
-    -fx-background-color: rgba(40, 40, 40, 0.7);
-    -fx-text-fill: white;
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
-    -fx-shape: "M 0,15 a 15,15 0 1,1 0,0.01 z"; /* Circle shape */
-    -fx-min-width: 40px;
-    -fx-min-height: 40px;
-    -fx-pref-width: 40px;
-    -fx-pref-height: 40px;
-}
-
-.scroll-button:hover {
-    -fx-background-color: rgba(60, 60, 60, 0.9);
-}
-
-.config-card {
-    -fx-padding: 0; /* Remove padding to let the image fill the space */
-    -fx-background-color: transparent; /* Make background transparent */
-    -fx-border-color: #555;
-    -fx-border-width: 2;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-min-width: 500px;
-    -fx-min-height: 350px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 2);
-}
-
-.config-card:selected {
-    -fx-border-color: #007bff; /* A bright color to indicate selection */
-    -fx-border-width: 5;
-    -fx-effect: dropshadow(gaussian, #007bff, 15, 0, 0, 0);
-}
-
-.config-card-label {
+/* ===== Launch Button ===== */
+.launch-button {
+    -fx-background-color: #5865f2; /* Discord's blurple */
     -fx-text-fill: white;
     -fx-font-size: 22px;
     -fx-font-weight: bold;
-    -fx-background-color: rgba(0, 0, 0, 0.5);
-    -fx-background-radius: 0 5 5 0; /* Rounded corners on the right side */
+    -fx-background-radius: 8px;
+    -fx-padding: 15 30;
+    -fx-cursor: hand;
+
+    -fx-transition-property: -fx-background-color;
+    -fx-transition-duration: 0.2s;
+    -fx-transition-timing-function: ease-in-out;
 }
 
-.config-card-background-1 {
-    -fx-background-image: url("episode1.png");
-    -fx-background-size: cover;
-    -fx-background-position: center center;
-    -fx-background-repeat: no-repeat;
+.launch-button:hover {
+    -fx-background-color: #4752c4; /* Darker on hover */
 }
 
-.config-card-default {
-    -fx-background-image: url("default.png");
-    -fx-background-size: cover;
-    -fx-background-position: center center;
-    -fx-background-repeat: no-repeat;
+.launch-button:disabled {
+    -fx-background-color: #718096;
+    -fx-opacity: 0.6;
 }
-.blur {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 2);
-    -fx-border-style: double;
-    -fx-border-color: white;
-    -fx-border-width: 2px;
-    -fx-border-radius: 10px;
-    -fx-background-radius: 10px;
-    filter: blur(10px);
+
+/* Style for the button when it becomes a "Cancel" button */
+.launch-button.cancel {
+    -fx-background-color: #d93d43; /* Red for cancel */
+}
+.launch-button.cancel:hover {
+    -fx-background-color: #a62d32; /* Darker red on hover */
+}
+
+
+/* General buttons at the bottom of sidebar */
+.sidebar .button {
+     -fx-background-color: #40444b;
+     -fx-text-fill: white;
+     -fx-background-radius: 8px;
+}
+.sidebar .button:hover {
+     -fx-background-color: #5865f2;
+}
+
+#logoutButton {
+    -fx-background-color: #d93d43;
+}
+#logoutButton:hover {
+    -fx-background-color: #a62d32;
+}
+
+/* ===== Progress Bar ===== */
+.progress-bar {
+    -fx-accent: #5865f2;
+}
+
+/* ===== Sidebar Toggle Button ===== */
+.sidebar-toggle-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b9bbbe;
+    -fx-background-radius: 50%;
+    -fx-cursor: hand;
+}
+.sidebar-toggle-button:hover {
+    -fx-background-color: #40444b;
+    -fx-text-fill: white;
 }

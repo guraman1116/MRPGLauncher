@@ -6,17 +6,19 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Type;
-import java.net.*;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LaunchConfigManager {
     private static final URL lc;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static List<LaunchConfig> configs;
 
     static {
         try {
@@ -26,38 +28,38 @@ public class LaunchConfigManager {
         }
     }
 
-    public static void init(){
-        try {
-            URLConnection connection = lc.openConnection();
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-            try (InputStream is = connection.getInputStream()) {
-                if (Files.exists(Paths.get(System.getProperty("user.home"), ".mrpg-launcher", "launcher_config.json"))) {
-                    Files.delete(Paths.get(System.getProperty("user.home"), ".mrpg-launcher", "launcher_config.json"));
-                }
-                Files.copy(is, Paths.get(System.getProperty("user.home"), ".mrpg-launcher", "launcher_config.json"));
-                System.out.println("Downloaded launch config successfully");
-            }catch (Exception e){
-                throw new RuntimeException(e);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private static Path configPath;
 
+    public static void init(Path path) {
+        configPath = path;
+        loadConfigs();
     }
-    public static List<LaunchConfig> getConfigs() {
-        Path path = Paths.get(System.getProperty("user.home"), ".mrpg-launcher", "launcher_config.json");
-        if (Files.exists(path) ){
-            try  {
-                String json = Files.readString(path);
-                Type type = new TypeToken<List<LaunchConfig>>() {}.getType();
-                List<LaunchConfig> configs = GSON.fromJson(json, type);
-                if (configs != null) return configs;
-                else throw new RuntimeException("Failed to parse launch configs");
+
+    private static void loadConfigs() {
+        configs = new ArrayList<>();
+        Path configFile = configPath.resolve("launch_configs.json");
+
+        if (Files.exists(configFile)) {
+            System.out.println("Loading configurations from local file: " + configFile);
+            try (Reader reader = Files.newBufferedReader(configFile)) {
+                configs = GSON.fromJson(reader, new TypeToken<List<LaunchConfig>>() {}.getType());
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                System.err.println("Error reading local config file.");
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Local config file not found. Fetching from URL: " + lc);
+            try (InputStream is = lc.openStream();
+                 Reader reader = new InputStreamReader(is)) {
+                configs = GSON.fromJson(reader, new TypeToken<List<LaunchConfig>>() {}.getType());
+            } catch (IOException e) {
+                System.err.println("Error fetching or reading config from URL.");
+                e.printStackTrace();
             }
         }
-        return Collections.emptyList();
     }
 
+    public static List<LaunchConfig> getConfigs() {
+        return configs;
+    }
 }

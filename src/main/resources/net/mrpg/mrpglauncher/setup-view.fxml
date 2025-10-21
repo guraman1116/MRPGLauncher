@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane prefHeight="250.0" prefWidth="500.0" stylesheets="@launcher-style.css" style="-fx-background-color: #2f3136;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.mrpg.mrpglauncher.SetupController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+    <top>
+        <VBox alignment="CENTER" spacing="5.0" BorderPane.alignment="CENTER">
+            <children>
+                <Label styleClass="content-header" text="初回セットアップ">
+                </Label>
+                <Label styleClass="config-description" text="MRPGのファイルを保存したいフォルダを選択してください。" />
+            </children>
+            <BorderPane.margin>
+                <Insets bottom="20.0" />
+            </BorderPane.margin>
+        </VBox>
+    </top>
+    <center>
+        <HBox spacing="10.0">
+            <children>
+                <TextField fx:id="pathTextField" editable="false" promptText="フォルダパス..." HBox.hgrow="ALWAYS" />
+                <Button onAction="#onBrowseButtonClick" text="参照..." />
+            </children>
+        </HBox>
+    </center>
+    <bottom>
+        <VBox alignment="CENTER">
+            <children>
+                <Button fx:id="saveButton" onAction="#onSaveButtonClick" styleClass="launch-button" text="保存して続行" />
+            </children>
+            <BorderPane.margin>
+                <Insets top="20.0" />
+            </BorderPane.margin>
+        </VBox>
+    </bottom>
+</BorderPane>
