@@ -1,8 +1,6 @@
 package net.mrpg.mrpglauncher;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -62,6 +60,23 @@ public class MainController implements Initializable {
         updateButtonStates();
         auth = new Auth();
         updateUiForLoginState();
+        setupHoverAnimations();
+    }
+
+    private void setupHoverAnimations() {
+        RotateTransition rotateTransition = new RotateTransition(Duration.millis(200), sidebarToggleButton);
+        rotateTransition.setCycleCount(1);
+        rotateTransition.setAutoReverse(false);
+
+        sidebarToggleButton.setOnMouseEntered(event -> {
+            rotateTransition.setToAngle(90);
+            rotateTransition.play();
+        });
+
+        sidebarToggleButton.setOnMouseExited(event -> {
+            rotateTransition.setToAngle(0);
+            rotateTransition.play();
+        });
     }
 
     public void postInit(Path configPath) {
@@ -141,7 +156,7 @@ public class MainController implements Initializable {
         startButton.getStyleClass().add("cancel");
         progressBar.setVisible(true);
         progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS); // Indeterminate progress
-        setSidebarCollapsed(true); // Collapse sidebar
+        setSidebarVisible(false); // Collapse sidebar
 
         // Disable sidebar buttons
         configContainer.getChildren().forEach(node -> node.setDisable(true));
@@ -156,7 +171,7 @@ public class MainController implements Initializable {
         startButton.getStyleClass().remove("cancel");
         progressBar.setVisible(false);
         progressBar.setProgress(0);
-        setSidebarCollapsed(false); // Expand sidebar
+        setSidebarVisible(true); // Expand sidebar
 
         // Enable sidebar buttons
         configContainer.getChildren().forEach(node -> node.setDisable(false));
@@ -167,28 +182,29 @@ public class MainController implements Initializable {
 
     @FXML
     protected void toggleSidebar() {
-        setSidebarCollapsed(!isSidebarVisible);
+        setSidebarVisible(!isSidebarVisible);
     }
 
-    private void setSidebarCollapsed(boolean collapsed) {
-        if (collapsed == !isSidebarVisible) return; // No change
+    private void setSidebarVisible(boolean visible) {
+        if (isSidebarVisible == visible) {
+            return; // Already in the desired state
+        }
+        isSidebarVisible = visible;
 
-        isSidebarVisible = !collapsed;
-        final double targetWidth = collapsed ? 0 : 280.0;
+        final double targetWidth = visible ? 280.0 : 0;
 
-        // Animate sidebar width
         Timeline timeline = new Timeline();
-        KeyValue kv = new KeyValue(sidebar.prefWidthProperty(), targetWidth);
+        KeyValue kv = new KeyValue(sidebar.maxWidthProperty(), targetWidth);
         KeyFrame kf = new KeyFrame(Duration.millis(300), kv);
         timeline.getKeyFrames().add(kf);
-        timeline.setOnFinished(event -> {
-            sidebar.setVisible(!collapsed);
-            sidebar.setManaged(!collapsed);
-        });
-
-        if (!collapsed) {
-            sidebar.setVisible(true);
+        if (visible) {
             sidebar.setManaged(true);
+            sidebar.setVisible(true);
+        } else {
+            timeline.setOnFinished(event -> {
+                sidebar.setManaged(false);
+                sidebar.setVisible(false);
+            });
         }
 
         timeline.play();
