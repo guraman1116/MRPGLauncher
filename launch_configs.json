@@ -4,7 +4,10 @@
     "episode": "1",
     "minecraftVersion": "1.20.1-forge-47.4.10",
     "description": "産業革命の時代。蒸気と歯車の技術が世界を変え、あらゆる仕組みが機械仕掛けで動き出した時代を舞台とする。",
-    "repository": "https://github.com/guraman1116/clockage.git"
+    "repository": "https://github.com/guraman1116/clockage.git",
+    "mcVersion": "1.20.1",
+    "loaderType": "forge",
+    "loaderVersion": "47.4.10"
   },
   {
     "name": "EP2 GearShift",

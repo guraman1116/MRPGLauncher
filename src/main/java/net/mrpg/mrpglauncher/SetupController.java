@@ -23,8 +23,6 @@ public class SetupController {
     private Button saveButton;
 
     private Stage stage;
-    private final Properties settings = new Properties();
-    private final Path settingsPath = Paths.get(System.getProperty("user.home"), ".mrpg-launcher", "settings.properties");
 
     public void setStage(Stage stage) {
         this.stage = stage;
@@ -32,7 +30,7 @@ public class SetupController {
 
     @FXML
     private void initialize() {
-        loadSettings();
+        pathTextField.setText(SettingsManager.getInstance().getProperty("config_path", ""));
     }
 
     @FXML
@@ -49,32 +47,8 @@ public class SetupController {
     private void onSaveButtonClick() {
         String path = pathTextField.getText();
         if (path != null && !path.isEmpty()) {
-            settings.setProperty("config_path", path);
-            saveSettings();
+            SettingsManager.getInstance().setProperty("config_path", path);
             stage.close();
-        }
-    }
-
-    private void loadSettings() {
-        try {
-            if (Files.exists(settingsPath)) {
-                try (InputStream input = Files.newInputStream(settingsPath)) {
-                    settings.load(input);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void saveSettings() {
-        try {
-            Files.createDirectories(settingsPath.getParent());
-            try (OutputStream output = Files.newOutputStream(settingsPath)) {
-                settings.store(output, "MRPGLauncher Settings");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

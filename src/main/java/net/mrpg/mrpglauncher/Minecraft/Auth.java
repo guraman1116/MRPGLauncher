@@ -77,6 +77,13 @@ public class Auth {
         return null;
     }
 
+    public String getToken() {
+        if (currentSession != null && currentSession.getMcProfile() != null) {
+            return currentSession.getMcProfile().getMcToken().getAccessToken();
+
+        }
+        return null;
+    }
     public boolean isLoggedIn() {
         return currentSession != null && currentSession.getMcProfile() != null;
     }

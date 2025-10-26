@@ -33,7 +33,7 @@
             <top>
                 <Button fx:id="sidebarToggleButton" onAction="#toggleSidebar" styleClass="sidebar-toggle-button" BorderPane.alignment="TOP_LEFT">
                     <graphic>
-                        <FontIcon iconLiteral="mdi-menu" iconSize="20" />
+                        <FontIcon iconColor="WHITE" iconLiteral="mdi-menu" iconSize="20" />
                     </graphic>
                     <BorderPane.margin>
                         <Insets left="15.0" top="15.0" />

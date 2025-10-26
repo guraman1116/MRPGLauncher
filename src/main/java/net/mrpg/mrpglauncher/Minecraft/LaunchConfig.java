@@ -6,6 +6,26 @@ public class LaunchConfig {
     private String minecraftVersion;
     private String description;
     private String repository;
+    private String mcVersion;
+    private String loaderType;
+    private String loaderVersion;
+    private String gameDir;
+
+    public String getMcVersion() {
+        return mcVersion;
+    }
+
+    public String getLoaderType() {
+        return loaderType;
+    }
+
+    public String getLoaderVersion() {
+        return loaderVersion;
+    }
+
+    public String getGameDir() {
+        return gameDir;
+    }
 
     public String getName() {
         return name;

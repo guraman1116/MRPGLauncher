@@ -1,6 +1,8 @@
 package net.mrpg.mrpglauncher;
 
 import javafx.animation.*;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -16,6 +18,7 @@ import javafx.util.Duration;
 import net.mrpg.mrpglauncher.Minecraft.Auth;
 import net.mrpg.mrpglauncher.Minecraft.LaunchConfig;
 import net.mrpg.mrpglauncher.Minecraft.LaunchConfigManager;
+import net.mrpg.mrpglauncher.Minecraft.MinecraftLaunchHelper;
 
 import java.io.*;
 import java.net.URL;
@@ -52,7 +55,8 @@ public class MainController implements Initializable {
     private int currentConfigIndex = -1;
     private boolean isLaunching = false;
     private boolean isSidebarVisible = true;
-
+    private Process minecraftProcess;
+    private Timeline buttonLoadingAnimation;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -128,15 +132,56 @@ public class MainController implements Initializable {
         }
     }
 
+    private void playButtonLoadingAnimation() {
+        startButton.setDisable(true);
+        DoubleProperty x = new SimpleDoubleProperty(0);
+        x.addListener((obs, oldX, newX) -> {
+            double pos = newX.doubleValue();
+            String style = String.format( "-fx-background-color: linear-gradient(to right, #5865f2,#5865f2 %.0f%%, #81C784 %.0f%%, #4CAF50 %.0f%%, #4CAF50);",
+                    (pos*100) -10,
+                    pos*100,
+                    (pos*100) + 10
+            );
+            startButton.setStyle(style);
+        });
+        buttonLoadingAnimation = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(x, 0)),
+                new KeyFrame(Duration.seconds(1.0), new KeyValue(x, 1.0))
+        );
+        buttonLoadingAnimation.setCycleCount(Timeline.INDEFINITE);
+        buttonLoadingAnimation.play();
+    }
+
+    private void stopButtonLoadingAnimation() {
+        if (buttonLoadingAnimation != null) {
+            buttonLoadingAnimation.stop();
+            buttonLoadingAnimation.setCycleCount(0);
+        }
+        startButton.setStyle(" ");
+        startButton.setDisable(false);
+    }
+
     private void updateMainContent(LaunchConfig config) {
         if (config != null) {
-            configNameLabel.setText(config.getName());
-            configDescriptionLabel.setText(config.getDescription());
+            playButtonLoadingAnimation();
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(1000));
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0);
+            fadeOut.setOnFinished(event ->{
+                    configNameLabel.setText(config.getName());
+                    configDescriptionLabel.setText(config.getDescription());
+                    FadeTransition fadeIn = new FadeTransition(Duration.millis(1000), mainContent);
+                    fadeIn.setFromValue(0);
+                    fadeIn.setToValue(1.0);
+                    fadeIn.setOnFinished(e -> stopButtonLoadingAnimation());
+                    fadeIn.play();
+            });
+            fadeOut.play();
         }
     }
 
     @FXML
-    protected void onStartButtonClick() {
+    protected void onStartButtonClick() throws IOException {
         if (isLaunching) {
             // Cancel logic
             cancelLaunch();
@@ -150,7 +195,7 @@ public class MainController implements Initializable {
         }
     }
 
-    private void startLaunch() {
+    private void startLaunch() throws IOException {
         isLaunching = true;
         startButton.setText("キャンセル");
         startButton.getStyleClass().add("cancel");
@@ -162,6 +207,7 @@ public class MainController implements Initializable {
         configContainer.getChildren().forEach(node -> node.setDisable(true));
 
         System.out.println("Starting Minecraft...");
+        MinecraftLaunchHelper.launch( SettingsManager.getInstance().getProperty("config_path", "\\"), configs.get(currentConfigIndex), auth);
         //TODO: Add actual Minecraft Launch method here
     }
 
@@ -191,10 +237,12 @@ public class MainController implements Initializable {
         }
         isSidebarVisible = visible;
 
-        final double targetWidth = visible ? 280.0 : 0;
+        final double targetWidth = visible ? 280.0 : 0.0;
+
+        sidebar.setPrefWidth(sidebar.getWidth());
 
         Timeline timeline = new Timeline();
-        KeyValue kv = new KeyValue(sidebar.maxWidthProperty(), targetWidth);
+        KeyValue kv = new KeyValue(sidebar.prefWidthProperty(), targetWidth);
         KeyFrame kf = new KeyFrame(Duration.millis(300), kv);
         timeline.getKeyFrames().add(kf);
         if (visible) {
@@ -295,7 +343,11 @@ public class MainController implements Initializable {
             loginController.setOnLoginSuccess(() -> {
                 updateUiForLoginState();
                 // Automatically start launch after successful login
-                startLaunch();
+                try {
+                    startLaunch();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             });
 
             Stage stage = new Stage();
